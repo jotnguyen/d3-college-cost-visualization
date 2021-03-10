@@ -1,19 +1,40 @@
 <!DOCTYPE html>
 <html>
     <head>
-      <script src="./d3.js"></script>
+      <script src="./d3v6.js"></script>
       <script src="./html5slider.js"></script>
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
       <link rel="stylesheet" href="styles.css">
+
+      <link href="nouislider.css" rel="stylesheet">
+      <script src="nouislider.js"></script>
     </head>
 
     <body>
+
+      <div>This is a slider for the years from 2009 - 2018. Press play to go through each consecutive year.</div>
       <input id="slider" type="range" min="2009" max="2018" value="2009" step="1" />
-	
       <span id="range">2009</span>
     
       <button name="play" id="play">Play</button>
-      
+
+      <br>
+      <br>
+      <br>
+      <br>
+
+      <div>This is a slider for the percentage of undergraduate students who receive financial aid</div>
+      <br>
+      <br>
+
+      <div id="nuslider"></div>
+      <br>
+      <!-- <div>Percentage Values:</div> -->
+      <!-- <div id="slider-step-value"></div> -->
+      <br>
+      <br>
+      <br>
+
       <div id="chart"></div>
       
 

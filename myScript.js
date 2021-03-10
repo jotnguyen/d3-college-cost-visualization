@@ -1,3 +1,25 @@
+var nuSlider = document.getElementById('nuslider');
+console.log("noUiSlider"+noUiSlider)
+
+range.style.height = '400px';
+range.style.width = '400px';
+noUiSlider.create(nuSlider, {
+    start: [0, 100],
+    step: 1,
+    connect: true,
+    range: {
+        'min': 0,
+        'max': 100
+    },
+    tooltips: true
+});
+
+var stepSliderValueElement = document.getElementById('slider-step-value');
+// console.log('stepslidervalueelement'+stepSliderValueElement)
+
+
+
+
 var margin = {
     top : 20,
     right : 20,
@@ -92,7 +114,7 @@ var tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")				
     .style("opacity", 0);
 
-d3.csv("./data/OklahomaDataCombinedCleaned1.csv", function(error, data) {
+const dataset = d3.csv("./data/OklahomaDataCombinedCleaned1.csv", function(error, data) {
     // console.log(error)
     // console.log(data)
     myData.push(error)
@@ -129,25 +151,7 @@ d3.csv("./data/OklahomaDataCombinedCleaned1.csv", function(error, data) {
             .style("text-anchor", "middle")
             .text("Average Student Loan Total ($)")
 
-
-
-    // svg.append("rect")
-    // 	.attr("y", 150)
-    //     .attr("x", 120)
-    //     .attr("width", 600)
-    //     .attr("height", 50)
-    // 	.attr("fill", "url(#textBg)")
-    // 	.attr("stroke", "black")
-
-    //circles
-    // svg.append('circle')
-    // .attr('cx', 100)
-    // .attr('cy', 100)
-    // .attr('r', 50)
-    // .attr('stroke', 'black')
-    // .attr('fill', '#69a3b2');
-
-    svg.selectAll(".dot")
+    var dots = svg.selectAll(".dot")
         .data(myData)
         .enter()
         .append("circle")
@@ -155,7 +159,7 @@ d3.csv("./data/OklahomaDataCombinedCleaned1.csv", function(error, data) {
             .attr("r", 
                 function(d) {
                     // console.log(d.TotalEnrollment)
-                    console.log(d)
+                    // console.log(d)
                     if(d.IC2009_AY_RV == "" || d.SFA0910_RV == ""){
                         return 0
                     }
@@ -164,7 +168,6 @@ d3.csv("./data/OklahomaDataCombinedCleaned1.csv", function(error, data) {
             .attr("cx", function(d) {
                     // Tuition and fees IC
                     // console.log(d.IC2009_AY_RV)
-
                     return x(d.IC2009_AY_RV);
                 })
             .attr("cy", function(d) {
@@ -189,7 +192,7 @@ d3.csv("./data/OklahomaDataCombinedCleaned1.csv", function(error, data) {
                 tooltip.transition()		
                     .duration(200)		
                     .style("opacity", .9);		
-                tooltip.html(d.InstitutionName+"<br/>"+institutionType[d.Control] + "<br/>")	
+                tooltip.html(d.InstitutionName+"<br/>"+institutionType[d.Control] + "<br/>"+d.PercentUndergradAid+"% of Undergrads given Financial Aid")	
                     .style("left", (event.pageX) + "px")		
                     .style("top", (event.pageY - 28) + "px");	
             })
@@ -199,9 +202,239 @@ d3.csv("./data/OklahomaDataCombinedCleaned1.csv", function(error, data) {
                     .style("opacity", 0);	
             })
                 ;
-            
+    // console.log(myData);
+    // return myData;
 
+}).then((d) => {
+    // console.log(myData)
+    return myData
+    });
+
+const filterFunctions = dataset.then(function(data){
+    console.log(data)
+     
+})
+
+
+
+
+nuSlider.noUiSlider.on('update', function (values, handle) {
+    // console.log("values "+values+"  handle "+handle)
+    // console.log("value[0] "+values[0])
+    // console.log("value[1] "+values[1])
+    // stepSliderValueElement.innerHTML = values[handle];
+    console.log("calling filterData")
+    filterData(values)
 });
+
+
+// function to filter by 
+function filterData(sliderInput){
+    // console.log("myData "+myData[])
+    // myData.filter(function(d){
+    //     console.log(d.PercentUndergradAid)
+    //     return d.PercentUndergradAid > values[0]
+    // })
+    console.log(sliderInput)
+    var values = [parseInt(sliderInput[0]), parseInt(sliderInput[1])];
+    d3.selectAll(".dot") 
+        // .attr("r", function(d){
+        //     if(d.TotalEnrollment >= values[0] && d.TotalEnrollment <= values[1] ){
+        //         return (4 + (d.TotalEnrollment * .000655));
+        //     }
+        //     else{
+        //         return 0;
+        //     }
+        // })
+        .attr("r", function(d){
+            if(values === undefined){
+                // values = [0,100]
+                var nouslider = document.getElementById('nuslider');
+                var sliderValues = nouslider.noUiSlider.get();
+                values = [parseInt(sliderValues[0]), parseInt(sliderValues[1])]
+                console.log("parsed values"+values)
+            }
+            switch ($("#slider").val()) {
+                case "2009":
+                    if (d.SFA0910_RV == "" || d.IC2009_AY_RV == ""){
+                        // console.log("institution name"+d.InstitutionName)
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2010":
+                    if (d.SFA1011_RV == "" || d.IC2010_AY_RV == ""){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        console.log(values)
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2011":
+                    // console.log("2011")
+                    if (d.SFA1112_RV == "" || d.IC2011_AY_RV == ""){
+                        console.log("0 radius")
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2012":
+                    if (d.SFA1213_RV == "" || d.IC2012_AY == ""){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2013":
+                    if (d.SFA1314_RV == "" || d.IC2013_AY == ""){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2014":
+                    if (d.SFA1415_RV == "" || d.IC2014_AY == ""){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2015":
+                    if (d.SFA1516_RV == "" || d.IC2015_AY == ""){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2016":
+                    if (d.SFA1617_RV == "" || d.IC2016_AY == ""){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2017":
+                    if (d.SFA1718_RV == "" || d.IC2017_AY == ""){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    // return y(d.SFA1718_RV);
+                    break;
+                case "2018":
+                    if (d.SFA1819 == "" || d.IC2018_AY == ""){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    // return y(d.SFA1819);
+                    break;
+            }
+        })
+        .transition()
+        .duration(1000)
+        .attr("cy", function(d) {
+    
+            switch ($("#slider").val()) {
+                case "2009":
+                    return y(d.SFA0910_RV);
+                    break;
+                case "2010":
+                    return y(d.SFA1011_RV);
+                    break;
+                case "2011":
+                    return y(d.SFA1112_RV);
+                    break;
+                case "2012":
+                    return y(d.SFA1213_RV);
+                    break;
+                case "2013":
+                    return y(d.SFA1314_RV);
+                    break;
+                case "2014":
+                    return y(d.SFA1415_RV);
+                    break;
+                case "2015":
+                    return y(d.SFA1516_RV);
+                    break;
+                case "2016":
+                    return y(d.SFA1617_RV);
+                    break;
+                case "2017":
+                    return y(d.SFA1718_RV);
+                    break;
+                case "2018":
+                    return y(d.SFA1819);
+                    break;
+            }
+        })
+        .transition()
+        .duration(1000)
+        .attr("cx", function(d) {
+            switch ($("#slider").val()) {
+                case "2009":
+                    return x(d.IC2009_AY_RV);
+                    break;
+                case "2010":
+                    return x(d.IC2010_AY_RV);
+                    break;
+                case "2011":
+                    return x(d.IC2011_AY_RV);
+                    break;
+                case "2012":
+                    return x(d.IC2012_AY);
+                    break;
+                case "2013":
+                    return x(d.IC2013_AY);
+                    break;
+                case "2014":
+                    return x(d.IC2014_AY);
+                    break;
+                case "2015":
+                    return x(d.IC2015_AY);
+                    break;
+                case "2016":
+                    return x(d.IC2016_AY);
+                    break;
+                case "2017":
+                    return x(d.IC2017_AY);
+                    break;
+                case "2018":
+                    return x(d.IC2018_AY);
+                    break;
+            }
+        });
+    return "test";
+}
+
+
+
+
+
+
+
 
 var running = false;
 var timer;
@@ -233,6 +466,7 @@ $("button").on("click", function() {
                 }
                 $("#slider").val(sliderValue);
                 update();
+                filterData();
             
         }, duration);
         running = true;
@@ -244,17 +478,13 @@ $("button").on("click", function() {
 
 $("#slider").on("change", function(){
     update();
+    filterData();
     $("#range").html($("#slider").val());
     clearInterval(timer);
     $("button").html("Play");
 });
-// function to filter by 
-filter = function() {
-    myData.filter()( function(college) {
-        return "";
-    })
-}
-update = function() {
+
+function update() {
 
     d3.selectAll(".dot")
         .attr("r", function(d){
