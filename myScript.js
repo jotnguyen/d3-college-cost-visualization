@@ -49,7 +49,7 @@ svg.append("text")
         .attr("text-anchor", "middle")  
         .style("font-size", "16px") 
         .style("text-decoration", "underline")  
-        .text("Undergraduate Costs of Universities in Illinois from 2007 - 2019");
+        .text("Undergraduate Costs of Universities in Oklahoma from 2009 - 2018");
 //legend x and y position
 var LYP = 300, 
     LXP = 600;
@@ -63,11 +63,11 @@ svg.append("text").attr("class", "label").attr("x", LXP + 15).attr("y", LYP + 25
 });
 svg.append("circle").attr("cx", LXP).attr("cy", LYP + 50).attr("r", 12).style("fill", "rgb(53, 135, 212)").attr("stroke", "#000");
 svg.append("text").attr("class", "label").attr("x", LXP + 15).attr("y", LYP + 55).style("text-anchor", "start").text(function(d) {
-    return "Nonprofit";
+    return "Private Nonprofit";
 });
 svg.append("circle").attr("cx", LXP).attr("cy", LYP + 80).attr("r", 12).style("fill", "rgb(228, 26, 28)").attr("stroke", "#000");
 svg.append("text").attr("class", "label").attr("x", LXP + 15).attr("y", LYP + 85).style("text-anchor", "start").text(function(d) {
-    return "For-profit";
+    return "Private For-profit";
 });
 svg.append("text").attr("class", "label").attr("x", LXP - 5).attr("y", LYP + 110).text("Enrollment").style("font-weight", "bold");
 
@@ -82,11 +82,22 @@ svg.append("circle").attr("cx", LXP).attr("cy", LYP + 93 + 110).attr("r", 4).sty
 svg.append("text").attr("class", "label").attr("x", LXP + 25).attr("y", LYP + 210).style("text-anchor", "start").text("100+");
 
 var myData = [];
-d3.csv("/loanvscost.csv", function(error, data) {
+var institutionType = {
+    1: "Public",
+    2: "Private Non-profit",
+    3: "Private For-profit"
+}
+// Define the div for the tooltip
+var tooltip = d3.select("body").append("div")	
+    .attr("class", "tooltip")				
+    .style("opacity", 0);
+
+d3.csv("./data/OklahomaDataCombinedCleaned1.csv", function(error, data) {
     // console.log(error)
+    // console.log(data)
     myData.push(error)
-    x.domain([0, 30000]).nice();
-    y.domain([0, 11000]).nice();
+    x.domain([0, 60000]).nice();
+    y.domain([0, 40000]).nice();
     
     // .then((error) => console.log(myData))
     
@@ -144,27 +155,49 @@ d3.csv("/loanvscost.csv", function(error, data) {
             .attr("r", 
                 function(d) {
                     // console.log(d.TotalEnrollment)
+                    console.log(d)
+                    if(d.IC2009_AY_RV == "" || d.SFA0910_RV == ""){
+                        return 0
+                    }
                     return (4 + (d.TotalEnrollment * .000655));
                 })
-            .attr("cx", 
-                function(d) {
-                    // console.log("test")
-                    return x(d.TF9900);
+            .attr("cx", function(d) {
+                    // Tuition and fees IC
+                    // console.log(d.IC2009_AY_RV)
+
+                    return x(d.IC2009_AY_RV);
                 })
-            .attr("cy", 
-                function(d) {
-                    return y(d.loan9900);
+            .attr("cy", function(d) {
+                    // Loan data SFA
+                    return y(d.SFA0910_RV);
                 })
-            .style("fill", 
-                function(d) {
-                    if (d.type == 3) {
+            .style("fill", function(d) {
+                    if (d.Control == 3) {
+                        // console.log("3")
+                        // Private for-profit
                         return "rgb(228, 26, 28)";
-                    } else if (d.type == 2) {
+                    } else if (d.Control == 2) {
+                        // Private non-profit
                         return "rgb(53, 135, 212)";
                     } else {
+                        // public
                         return "rgb(77, 175, 74)";
                     }
                 })
+            .on("mouseover", function(event, d) {	
+                console.log("mouseover"+d.Control)	
+                tooltip.transition()		
+                    .duration(200)		
+                    .style("opacity", .9);		
+                tooltip.html(d.InstitutionName+"<br/>"+institutionType[d.Control] + "<br/>")	
+                    .style("left", (event.pageX) + "px")		
+                    .style("top", (event.pageY - 28) + "px");	
+            })
+            .on("mouseout", function(event, d) {		
+                tooltip.transition()		
+                    .duration(500)		
+                    .style("opacity", 0);	
+            })
                 ;
             
 
@@ -175,8 +208,8 @@ var timer;
 $("button").on("click", function() {
     console.log("test")
     var duration = 3000,
-        maxstep = 2011,
-        minstep = 2000;
+        maxstep = 2018,
+        minstep = 2009;
     
     if (running == true) {
     
@@ -194,7 +227,7 @@ $("button").on("click", function() {
         timer = setInterval( function(){
                 if (sliderValue < maxstep){
                     sliderValue++;
-                    console.log(sliderValue)
+                    // console.log(sliderValue)
                     $("#slider").val(sliderValue);
                     $('#range').html(sliderValue);
                 }
@@ -215,50 +248,139 @@ $("#slider").on("change", function(){
     clearInterval(timer);
     $("button").html("Play");
 });
-
+// function to filter by 
+filter = function() {
+    myData.filter()( function(college) {
+        return "";
+    })
+}
 update = function() {
 
     d3.selectAll(".dot")
+        .attr("r", function(d){
+            switch ($("#slider").val()) {
+                case "2009":
+                    if (d.SFA0910_RV == "" || d.IC2009_AY_RV == ""){
+                        return 0
+                    }
+                    else{
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+                    break;
+                case "2010":
+                    if (d.SFA1011_RV == "" || d.IC2010_AY_RV == ""){
+                        return 0
+                    }
+                    else{
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+                    break;
+                case "2011":
+                    // console.log("2011")
+                    if (d.SFA1112_RV == "" || d.IC2011_AY_RV == ""){
+                        console.log("0 radius")
+                        return 0
+                    }
+                    else{
+                        // console.log("non-zero radius"+d.SFA1112_RV)
+
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+                    break;
+                case "2012":
+                    if (d.SFA1213_RV == "" || d.IC2012_AY == ""){
+                        return 0
+                    }
+                    else{
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+                    break;
+                case "2013":
+                    if (d.SFA1314_RV == "" || d.IC2013_AY == ""){
+                        return 0
+                    }
+                    else{
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+                    break;
+                case "2014":
+                    if (d.SFA1415_RV == "" || d.IC2014_AY == ""){
+                        return 0
+                    }
+                    else{
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+                    break;
+                case "2015":
+                    if (d.SFA1516_RV == "" || d.IC2015_AY == ""){
+                        return 0
+                    }
+                    else{
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+                    break;
+                case "2016":
+                    if (d.SFA1617_RV == "" || d.IC2016_AY == ""){
+                        return 0
+                    }
+                    else{
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+                    break;
+                case "2017":
+                    if (d.SFA1718_RV == "" || d.IC2017_AY == ""){
+                        return 0
+                    }
+                    else{
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+                    // return y(d.SFA1718_RV);
+                    break;
+                case "2018":
+                    if (d.SFA1819 == "" || d.IC2018_AY == ""){
+                        return 0
+                    }
+                    else{
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+                    // return y(d.SFA1819);
+                    break;
+            }
+        })
         .transition()
         .duration(1000)
         .attr("cy", function(d) {
     
             switch ($("#slider").val()) {
-                case "2000":
-                    return y(d.loan9900);
-                    break;
-                case "2001":
-                    return y(d.loan0001);
-                    break;
-                case "2002":
-                    return y(d.loan0102);
-                    break;
-                case "2003":
-                    return y(d.loan0203);
-                    break;
-                case "2004":
-                    return y(d.loan0304);
-                    break;
-                case "2005":
-                    return y(d.loan0405);
-                    break;
-                case "2006":
-                    return y(d.loan0506);
-                    break;
-                case "2007":
-                    return y(d.loan0607);
-                    break;
-                case "2008":
-                    return y(d.loan0708);
-                    break;
                 case "2009":
-                    return y(d.loan0809);
+                    return y(d.SFA0910_RV);
                     break;
                 case "2010":
-                    return y(d.loan0910);
+                    return y(d.SFA1011_RV);
                     break;
                 case "2011":
-                    return y(d.loan1011);
+                    return y(d.SFA1112_RV);
+                    break;
+                case "2012":
+                    return y(d.SFA1213_RV);
+                    break;
+                case "2013":
+                    return y(d.SFA1314_RV);
+                    break;
+                case "2014":
+                    return y(d.SFA1415_RV);
+                    break;
+                case "2015":
+                    return y(d.SFA1516_RV);
+                    break;
+                case "2016":
+                    return y(d.SFA1617_RV);
+                    break;
+                case "2017":
+                    return y(d.SFA1718_RV);
+                    break;
+                case "2018":
+                    return y(d.SFA1819);
                     break;
             }
         })
@@ -266,41 +388,35 @@ update = function() {
         .duration(1000)
         .attr("cx", function(d) {
             switch ($("#slider").val()) {
-                case "2000":
-                    return x(d.TF9900);
-                    break;
-                case "2001":
-                    return x(d.TF0001);
-                    break;
-                case "2002":
-                    return x(d.TF0102);
-                    break;
-                case "2003":
-                    return x(d.TF0203);
-                    break;
-                case "2004":
-                    return x(d.TF0304);
-                    break;
-                case "2005":
-                    return x(d.TF0405);
-                    break;
-                case "2006":
-                    return x(d.TF0506);
-                    break;
-                case "2007":
-                    return x(d.TF0607);
-                    break;
-                case "2008":
-                    return x(d.TF0708);
-                    break;
                 case "2009":
-                    return x(d.TF0809);
+                    return x(d.IC2009_AY_RV);
                     break;
                 case "2010":
-                    return x(d.TF0910);
+                    return x(d.IC2010_AY_RV);
                     break;
                 case "2011":
-                    return x(d.TF1011);
+                    return x(d.IC2011_AY_RV);
+                    break;
+                case "2012":
+                    return x(d.IC2012_AY);
+                    break;
+                case "2013":
+                    return x(d.IC2013_AY);
+                    break;
+                case "2014":
+                    return x(d.IC2014_AY);
+                    break;
+                case "2015":
+                    return x(d.IC2015_AY);
+                    break;
+                case "2016":
+                    return x(d.IC2016_AY);
+                    break;
+                case "2017":
+                    return x(d.IC2017_AY);
+                    break;
+                case "2018":
+                    return x(d.IC2018_AY);
                     break;
             }
         });
