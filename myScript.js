@@ -71,11 +71,11 @@ svg.append("text")
         .attr("text-anchor", "middle")  
         .style("font-size", "16px") 
         .style("text-decoration", "underline")  
-        .text("Undergraduate Costs of Universities in Oklahoma from 2009 - 2018");
+        .text("Undergraduate Costs of Universities in Certain States from 2009 - 2018");
 //legend x and y position
 var LYP = 300, 
-    LXP = 600;
-    
+    LXP = 700;
+console.log("legend test21")
 svg.append("text").attr("class", "label").attr("x", LXP - 5).attr("y", LYP).text("Institution Type").style("font-weight", "bold");
 
 //legend colors
@@ -85,7 +85,7 @@ svg.append("text").attr("class", "label").attr("x", LXP + 15).attr("y", LYP + 25
 });
 svg.append("circle").attr("cx", LXP).attr("cy", LYP + 50).attr("r", 12).style("fill", "rgb(53, 135, 212)").attr("stroke", "#000");
 svg.append("text").attr("class", "label").attr("x", LXP + 15).attr("y", LYP + 55).style("text-anchor", "start").text(function(d) {
-    return "Private Nonprofit";
+    return "Private Non-profit";
 });
 svg.append("circle").attr("cx", LXP).attr("cy", LYP + 80).attr("r", 12).style("fill", "rgb(228, 26, 28)").attr("stroke", "#000");
 svg.append("text").attr("class", "label").attr("x", LXP + 15).attr("y", LYP + 85).style("text-anchor", "start").text(function(d) {
@@ -114,7 +114,7 @@ var tooltip = d3.select("body").append("div")
     .attr("class", "tooltip")				
     .style("opacity", 0);
 
-const dataset = d3.csv("./data/OklahomaDataCombinedCleaned1.csv", function(error, data) {
+const dataset = d3.csv("./data/AllStateDataCombined.csv", function(error, data) {
     // console.log(error)
     // console.log(data)
     myData.push(error)
@@ -192,7 +192,7 @@ const dataset = d3.csv("./data/OklahomaDataCombinedCleaned1.csv", function(error
                 tooltip.transition()		
                     .duration(200)		
                     .style("opacity", .9);		
-                tooltip.html(d.InstitutionName+"<br/>"+institutionType[d.Control] + "<br/>"+d.PercentUndergradAid+"% of Undergrads given Financial Aid")	
+                tooltip.html(d.InstitutionName+"<br/>"+d.State+"<br/>"+institutionType[d.Control] + "<br/>"+d.PercentUndergradAid+"% of Undergrads given Financial Aid")	
                     .style("left", (event.pageX) + "px")		
                     .style("top", (event.pageY - 28) + "px");	
             })
@@ -224,12 +224,13 @@ nuSlider.noUiSlider.on('update', function (values, handle) {
     // console.log("value[1] "+values[1])
     // stepSliderValueElement.innerHTML = values[handle];
     console.log("calling filterData")
-    filterData(values)
+    filterData(values, updatedStates())
+    // updateStates()
 });
 
 
 // function to filter by 
-function filterData(sliderInput){
+function filterData(sliderInput, stateID){
     // console.log("myData "+myData[])
     // myData.filter(function(d){
     //     console.log(d.PercentUndergradAid)
@@ -237,7 +238,8 @@ function filterData(sliderInput){
     // })
     console.log(sliderInput)
     var values = [parseInt(sliderInput[0]), parseInt(sliderInput[1])];
-    d3.selectAll(".dot") 
+    if(stateID !==  "All"){
+        d3.selectAll(".dot") 
         // .attr("r", function(d){
         //     if(d.TotalEnrollment >= values[0] && d.TotalEnrollment <= values[1] ){
         //         return (4 + (d.TotalEnrollment * .000655));
@@ -247,7 +249,198 @@ function filterData(sliderInput){
         //     }
         // })
         .attr("r", function(d){
-            if(values === undefined){
+            if(values[0] == -1 ){
+                // values = [0,100]
+                var nouslider = document.getElementById('nuslider');
+                var sliderValues = nouslider.noUiSlider.get();
+                values = [parseInt(sliderValues[0]), parseInt(sliderValues[1])]
+                console.log("parsed values"+values)
+            }
+            switch ($("#slider").val()) {
+                case "2009":
+                    if (d.SFA0910_RV == "" || d.IC2009_AY_RV == "" || d.State != stateID){
+                        // console.log("institution name"+d.InstitutionName)
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2010":
+                    if (d.SFA1011_RV == "" || d.IC2010_AY_RV == "" || d.State != stateID){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        console.log(values)
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2011":
+                    // console.log("2011")
+                    if (d.SFA1112_RV == "" || d.IC2011_AY_RV == "" || d.State != stateID){
+                        console.log("0 radius")
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2012":
+                    if (d.SFA1213_RV == "" || d.IC2012_AY == "" || d.State != stateID){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2013":
+                    if (d.SFA1314_RV == "" || d.IC2013_AY == "" || d.State != stateID){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2014":
+                    if (d.SFA1415_RV == "" || d.IC2014_AY == "" || d.State != stateID){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2015":
+                    if (d.SFA1516_RV == "" || d.IC2015_AY == "" || d.State != stateID){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2016":
+                    if (d.SFA1617_RV == "" || d.IC2016_AY == "" || d.State != stateID){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    break;
+                case "2017":
+                    if (d.SFA1718_RV == "" || d.IC2017_AY == "" || d.State != stateID){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    // return y(d.SFA1718_RV);
+                    break;
+                case "2018":
+                    if (d.SFA1819 == "" || d.IC2018_AY == "" || d.State != stateID){
+                        return 0
+                    }
+                    else if (d.PercentUndergradAid >= values[0] && d.PercentUndergradAid <= values[1]){
+                        return (4 + (d.TotalEnrollment * .000655));
+                    }
+
+                    // return y(d.SFA1819);
+                    break;
+            }
+        })
+        .transition()
+        .duration(1000)
+        .attr("cy", function(d) {
+    
+            switch ($("#slider").val()) {
+                case "2009":
+                    return y(d.SFA0910_RV);
+                    break;
+                case "2010":
+                    return y(d.SFA1011_RV);
+                    break;
+                case "2011":
+                    return y(d.SFA1112_RV);
+                    break;
+                case "2012":
+                    return y(d.SFA1213_RV);
+                    break;
+                case "2013":
+                    return y(d.SFA1314_RV);
+                    break;
+                case "2014":
+                    return y(d.SFA1415_RV);
+                    break;
+                case "2015":
+                    return y(d.SFA1516_RV);
+                    break;
+                case "2016":
+                    return y(d.SFA1617_RV);
+                    break;
+                case "2017":
+                    return y(d.SFA1718_RV);
+                    break;
+                case "2018":
+                    return y(d.SFA1819);
+                    break;
+            }
+        })
+        .transition()
+        .duration(1000)
+        .attr("cx", function(d) {
+            switch ($("#slider").val()) {
+                case "2009":
+                    return x(d.IC2009_AY_RV);
+                    break;
+                case "2010":
+                    return x(d.IC2010_AY_RV);
+                    break;
+                case "2011":
+                    return x(d.IC2011_AY_RV);
+                    break;
+                case "2012":
+                    return x(d.IC2012_AY);
+                    break;
+                case "2013":
+                    return x(d.IC2013_AY);
+                    break;
+                case "2014":
+                    return x(d.IC2014_AY);
+                    break;
+                case "2015":
+                    return x(d.IC2015_AY);
+                    break;
+                case "2016":
+                    return x(d.IC2016_AY);
+                    break;
+                case "2017":
+                    return x(d.IC2017_AY);
+                    break;
+                case "2018":
+                    return x(d.IC2018_AY);
+                    break;
+            }
+        });
+    }
+    else{
+        d3.selectAll(".dot") 
+        // .attr("r", function(d){
+        //     if(d.TotalEnrollment >= values[0] && d.TotalEnrollment <= values[1] ){
+        //         return (4 + (d.TotalEnrollment * .000655));
+        //     }
+        //     else{
+        //         return 0;
+        //     }
+        // })
+        .attr("r", function(d){
+            if(values[0] == -1 ){
                 // values = [0,100]
                 var nouslider = document.getElementById('nuslider');
                 var sliderValues = nouslider.noUiSlider.get();
@@ -426,6 +619,8 @@ function filterData(sliderInput){
                     break;
             }
         });
+    }
+
     return "test";
 }
 
@@ -465,8 +660,9 @@ $("button").on("click", function() {
                     $('#range').html(sliderValue);
                 }
                 $("#slider").val(sliderValue);
+                // updateStates()
                 update();
-                filterData();
+                filterData(getPercentageSlider(), updatedStates());
             
         }, duration);
         running = true;
@@ -477,8 +673,10 @@ $("button").on("click", function() {
 });
 
 $("#slider").on("change", function(){
+
     update();
-    filterData();
+    filterData(getPercentageSlider(), updatedStates());
+    // updateStates()
     $("#range").html($("#slider").val());
     clearInterval(timer);
     $("button").html("Play");
@@ -651,4 +849,29 @@ function update() {
             }
         });
 };
+
+
+function getPercentageSlider(){
+    var nouslider = document.getElementById('nuslider');
+    var sliderValues = nouslider.noUiSlider.get();
+    values = [parseInt(sliderValues[0]), parseInt(sliderValues[1])]
+    return values;
+}
+
+//////////////// Dropdown code
+
+function selectStates(element){
+    // console.log(element)
+    var stateID = element.options[element.selectedIndex].value;
+    // console.log(stateID)
+    update();
+    filterData(getPercentageSlider(), stateID);
+}
+
+function updatedStates(){
+    var element = document.getElementById("states");
+    // console.log(element)
+    var stateID = element.options[element.selectedIndex].value;
+    return stateID
+}
 

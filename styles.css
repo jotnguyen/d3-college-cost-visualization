@@ -1,7 +1,14 @@
 html {
   min-height: 1000px;
 }
-
+.left-half {
+  float: left;
+  width: 50%;
+}
+.right-half {
+  float: left;
+  width: 50%;
+}
 input[type='range'] {
   -webkit-appearance: none !important;
   -webkit-border-radius: 5px;
@@ -90,7 +97,7 @@ h4	{
 
 .chart {
   width: 100%;
-  height: 500px;
+  height: 1100px;
 }
 
 @media only screen and (min-width: 481px) {
@@ -154,3 +161,6 @@ h4 {
 #schoolinfo {
   position: absolute;
 }
+
+
+
